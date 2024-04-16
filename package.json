@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.42.4",
+    "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "openai": "^4.33.0",
     "tmi.js": "^1.8.5"
