@@ -50,7 +50,7 @@ setInterval(() => {
             initializeClient(tokens.accessToken);  
         }
     });
-}, 60 * 1000);  //CURRENTLY TESTING
+}, 3 * 3600 * 1000);  //CURRENTLY TESTING
 
 function initializeClient(token, channels) {
     const opts = {
@@ -80,8 +80,16 @@ function initializeClient(token, channels) {
 
 async function generate(message) {
     try {
+        const faqText = `FAQ:
+        - What is Fana? Fana is the charity of charities! We bring vetted and high impact projects to Twitch streamers and their communities.
+        - What charity is being supported? In April in support of Earth Day, Fana is supporting projects providing clean water in Ethiopia, Madagascar, and Sierra Leone.
+        - What's the goal? The goal is to raise $500 for the projects.`;
+
         const completion = await openai.chat.completions.create({
-            messages: [{ role: "system", content: "You are the fana twitch chatbot that provides information exclusively about https://impact.fanaverse.io/" }, { role: "user", content: message }],
+            messages: [{
+                role: "system", content:
+                    `You are the fana twitch chatbot that provides information exclusively about https://impact.fanaverse.io/. You also use ${faqText} to answer questions.`
+            }, { role: "user", content: message }],
             model: "gpt-3.5-turbo",
         });
         return completion.choices[0].message.content.trim();
