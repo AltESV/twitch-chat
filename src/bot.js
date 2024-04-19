@@ -1,54 +1,10 @@
 import tmi from "tmi.js";
 import { config } from "./config/config.js";
-import axios from "axios";
 import { generate } from "./api/openai.js";
 import { addChannelToDB, getActiveChannels } from "./api/supabase.js";
+import { refreshAccessToken } from "./utils/tokenHandler.js";
 
 let client;
-
-//token refresh handler
-async function refreshAccessToken(refreshToken) {
-  const params = new URLSearchParams();
-  params.append("grant_type", "refresh_token");
-  params.append("refresh_token", refreshToken);
-  params.append("client_id", config.clientId);
-  params.append("client_secret", config.clientSecret);
-
-  try {
-    const response = await axios.post(config.refreshUrl, params);
-    const { access_token, expires_in, refresh_token } = response.data;
-    console.log(
-      `New Access Token: ${access_token} which expires in ${expires_in} seconds`
-    );
-    return {
-      accessToken: access_token,
-      expiresIn: expires_in,
-      refreshToken: refresh_token,
-    };
-  } catch (error) {
-    console.error("Failed to refresh token:", error);
-    return null;
-  }
-}
-
-refreshAccessToken(config.twitchRefreshToken).then((tokens) => {
-  if (tokens) {
-    config.twitchAccessToken = tokens.accessToken;
-    config.twitchRefreshToken = tokens.refreshToken;
-    initializeClient(tokens.accessToken);
-  }
-});
-
-setInterval(() => {
-  refreshAccessToken(confi.twitchRefreshToken).then((tokens) => {
-    if (tokens) {
-      console.log("Automatically refreshed Access Token.");
-      config.twitchAccessToken = tokens.accessToken;
-      config.twitchRefreshToken = tokens.refreshToken;
-      initializeClient(tokens.accessToken);
-    }
-  });
-}, 3 * 3600 * 1000);
 
 function initializeClient(token, channels) {
   const opts = {
@@ -60,7 +16,6 @@ function initializeClient(token, channels) {
     channels,
   };
 
-  //client
   client = new tmi.Client(opts);
 
   client.on("message", onMessageHandler);
@@ -74,6 +29,25 @@ function initializeClient(token, channels) {
 
   client.connect().catch(console.error);
 }
+
+refreshAccessToken(config.twitchRefreshToken).then((tokens) => {
+  if (tokens) {
+    config.twitchAccessToken = tokens.accessToken;
+    config.twitchRefreshToken = tokens.refreshToken;
+    initializeClient(tokens.accessToken);
+  }
+});
+
+setInterval(() => {
+  refreshAccessToken(config.twitchRefreshToken).then((tokens) => {
+    if (tokens) {
+      console.log("Automatically refreshed Access Token.");
+      config.twitchAccessToken = tokens.accessToken;
+      config.twitchRefreshToken = tokens.refreshToken;
+      initializeClient(tokens.accessToken);
+    }
+  });
+}, 3 * 3600 * 1000);
 
 async function onMessageHandler(channel, tags, msg, self) {
   if (self) return;

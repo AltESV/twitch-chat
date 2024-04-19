@@ -12,7 +12,13 @@ export async function addChannelToDB(channelName) {
     });
 
   if (error) console.error("Error adding channel to database:", error);
-  else console.log("Channel added to database:", data);
+  else {
+    if (data) {
+      console.log("Channel added or updated in database:", data);
+    } else {
+      console.log("No new data added or updated in database");
+    }
+  }
 }
 
 export async function getActiveChannels() {
