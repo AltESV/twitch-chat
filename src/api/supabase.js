@@ -2,7 +2,7 @@ import { config } from "../config/config.js";
 
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(config.supabaseUrl, config.supabaseKey);
+export const supabase = createClient(config.supabaseUrl, config.supabaseKey);
 
 export async function addChannelToDB(channelName) {
   const { data, error } = await supabase

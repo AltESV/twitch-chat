@@ -30,22 +30,22 @@ function initializeClient(token, channels) {
   client.connect().catch(console.error);
 }
 
-refreshAccessToken(config.twitchRefreshToken).then((tokens) => {
-  if (tokens) {
-    config.twitchAccessToken = tokens.accessToken;
-    config.twitchRefreshToken = tokens.refreshToken;
-    initializeClient(tokens.accessToken);
-  }
+refreshAccessToken().then((tokens) => {
+  getActiveChannels().then((channels) => {
+    if (tokens && channels.length > 0) {
+      initializeClient(tokens.accessToken, channels);
+    }
+  });
 });
 
 setInterval(() => {
-  refreshAccessToken(config.twitchRefreshToken).then((tokens) => {
-    if (tokens) {
-      console.log("Automatically refreshed Access Token.");
-      config.twitchAccessToken = tokens.accessToken;
-      config.twitchRefreshToken = tokens.refreshToken;
-      initializeClient(tokens.accessToken);
-    }
+  refreshAccessToken().then((tokens) => {
+    getActiveChannels().then((channels) => {
+      if (tokens && channels.length > 0) {
+        console.log("Automatically refreshed Access Token.");
+        initializeClient(tokens.accessToken, channels);
+      }
+    });
   });
 }, 3 * 3600 * 1000);
 
@@ -91,14 +91,6 @@ function addChannel(channelName) {
     console.log(`Bot is already a member of: ${channelName}`);
   }
 }
-
-getActiveChannels().then((channels) => {
-  if (channels.length > 0) {
-    initializeClient(config.twitchAccessToken, channels);
-  } else {
-    console.log("No active channels found. Ensure your database is populated.");
-  }
-});
 
 function onConnectedHandler(addr, port) {
   console.log(`* Connected to ${addr}:${port}`);
