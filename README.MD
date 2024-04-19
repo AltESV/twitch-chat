@@ -12,3 +12,6 @@ curl --location 'https://id.twitch.tv/oauth2/token' \
 --data-urlencode 'grant_type=authorization_code' \
 --data-urlencode 'redirect_uri=http://localhost:3000'
 
+# step3
+Ensure all env variables in particular OAuth access and refresh token are up to date before running. 
+Also make sure redirect uri is configured correctly on twitch dev console
