@@ -5,6 +5,7 @@ import { addChannelToDB, getActiveChannels } from "./api/supabase.js";
 import { refreshAccessToken } from "./utils/tokenHandler.js";
 
 let client;
+let isConnected = false;
 
 function initializeClient(token, channels) {
   const opts = {
@@ -16,18 +17,26 @@ function initializeClient(token, channels) {
     channels,
   };
 
-  client = new tmi.Client(opts);
+  if (!client) {
+    client = new tmi.Client(opts);
 
-  client.on("message", onMessageHandler);
-  client.on("connected", onConnectedHandler);
-  client.on("join", (channel, username, self) => {
-    if (self) {
-      console.log(`Successfully joined channel: ${channel}`);
-      addChannelToDB(channel);
-    }
-  });
+    client.on("message", onMessageHandler);
+    client.on("connected", onConnectedHandler);
+    client.on("disconnected", onDisconnectedHandler);
+    client.on("join", (channel, username, self) => {
+      if (self) {
+        console.log(`Successfully joined channel: ${channel}`);
+        addChannelToDB(channel);
+      }
+    });
+  } else {
+    client.opts.identity.password = `oauth:${token}`;
+    console.log("Token updated for the existing client.");
+  }
 
-  client.connect().catch(console.error);
+  if (!isConnected) {
+    client.connect().catch(console.error);
+  }
 }
 
 refreshAccessToken().then((tokens) => {
@@ -93,5 +102,11 @@ function addChannel(channelName) {
 }
 
 function onConnectedHandler(addr, port) {
+  isConnected = true;
   console.log(`* Connected to ${addr}:${port}`);
+}
+
+function onDisconnectedHandler() {
+  isConnected = false;
+  console.log("Diconnected");
 }
