@@ -2,9 +2,7 @@ import tmi from 'tmi.js';
 import { config } from './config/config.js';
 import axios from 'axios';  
 import { generate } from './api/openai.js';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(config.supabaseUrl, config.supabaseKey);
+import { addChannelToDB, getActiveChannels } from './api/supabase.js';
 
 let client;
 
@@ -109,31 +107,6 @@ function addChannel(channelName) {
     } else {
         console.log(`Bot is already a member of: ${channelName}`);
     }
-}
-
-
-async function addChannelToDB(channelName) {
-    const { data, error } = await supabase
-        .from('channels')
-        .upsert([{ channel_name: channelName, is_active: true }], {
-            onConflict: "channel_name"
-        });
-
-    if (error) console.error('Error adding channel to database:', error);
-    else console.log('Channel added to database:', data);
-}
-
-async function getActiveChannels() {
-    const { data, error } = await supabase
-        .from('channels')
-        .select('*')
-        .eq('is_active', true);
-
-    if (error) {
-        console.error('Error retrieving channels:', error);
-        return [];
-    }
-    return data.map(channel => channel.channel_name);
 }
 
 getActiveChannels().then(channels => {
