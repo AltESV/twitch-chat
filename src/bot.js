@@ -3,6 +3,10 @@ import { config } from "./config/config.js";
 import { generate } from "./api/openai.js";
 import { addChannelToDB, getActiveChannels } from "./api/supabase.js";
 import { refreshAccessToken } from "./utils/tokenHandler.js";
+import express from "express";
+
+const app = express();
+app.use(express.json());
 
 let client;
 let isConnected = false;
@@ -110,3 +114,30 @@ function onDisconnectedHandler() {
   isConnected = false;
   console.log("Diconnected");
 }
+
+app.post("/notification", async (req, res) => {
+  const { channel, message } = req.body;
+
+  if (!channel || !message) {
+    return res.status(400).send("Missing channel or message");
+  }
+
+  try {
+    await client.say(channel, message);
+    return res.status(200).json({
+      status: "success",
+      message: "message sent",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "error processing request",
+    });
+  }
+});
+
+
+const PORT = process.env.PORT || 3000;  
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
