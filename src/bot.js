@@ -136,8 +136,26 @@ app.post("/notification", async (req, res) => {
   }
 });
 
+app.post("/enrol", async (req, res) => {
+  if (!channel) {
+    return res.status(400).send("Missing channel");
+  }
 
-const PORT = process.env.PORT || 3000;  
+  try {
+    await addChannelToDB(channel);
+    return res.status(200).json({
+      status: "success",
+      message: "channel added",
+    });
+  } catch {
+    res.status(500).json({
+      status: "error",
+      message: "error processing request",
+    });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
