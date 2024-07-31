@@ -137,6 +137,8 @@ app.post("/notification", async (req, res) => {
 });
 
 app.post("/enrol", async (req, res) => {
+  const { channel } = req.body;
+
   if (!channel) {
     return res.status(400).send("Missing channel");
   }
